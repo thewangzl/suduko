@@ -22,6 +22,8 @@ class _GameScreenState extends State<GameScreen> {
   List<Map<String, dynamic>> _history = [];  // 添加历史记录
   Timer? _timer;
   int _seconds = 0;
+  static const int maxErrors = 3;  // 最大错误次数
+  int _errorCount = 0;  // 当前错误次数
 
   @override
   void initState() {
@@ -79,6 +81,43 @@ class _GameScreenState extends State<GameScreen> {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
       if (_board!.initialBoard[row][col] == 0) {
+        // 检查输入是否正确
+        final isCorrect = _board!.solution[row][col] == number;
+        if (!isCorrect) {
+          setState(() {
+            _errorCount++;
+          });
+          
+          // 检查是否达到最大错误次数
+          if (_errorCount >= maxErrors) {
+            _timer?.cancel();
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                title: const Text('游戏结束'),
+                content: const Text('已达到最大错误次数，游戏失败！'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(); // 返回主菜单
+                    },
+                    child: const Text('返回主菜单'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _loadNewBoard(); // 开始新游戏
+                    },
+                    child: const Text('重新开始'),
+                  ),
+                ],
+              ),
+            );
+            return;
+          }
+        }
         // 记录当前状态
         _history.add({
           'row': row,
@@ -202,7 +241,9 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             const Text('数独'),
             const Spacer(),
-            Text(_formatTime(_seconds)), // 显示计时器
+            Text('错误: $_errorCount/$maxErrors'),  // 显示错误次数
+            const SizedBox(width: 16),
+            Text(_formatTime(_seconds)),
           ],
         ),
       ),
