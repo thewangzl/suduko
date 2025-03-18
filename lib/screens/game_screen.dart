@@ -16,14 +16,22 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   SudokuBoard? _board;
   bool _isLoading = true;
-  int? selectedCell; // 添加选中格子的索引
+  int? selectedCell;
+  List<Map<String, dynamic>> _history = [];  // 添加历史记录
 
-  // 添加处理数字输入的方法
   void handleNumberInput(int number) {
     if (selectedCell != null && _board != null) {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
       if (_board!.initialBoard[row][col] == 0) {
+        // 记录当前状态
+        _history.add({
+          'row': row,
+          'col': col,
+          'oldValue': _board!.initialBoard[row][col],
+          'newValue': number,
+        });
+
         setState(() {
           _board!.initialBoard[row][col] = number;
           
@@ -59,6 +67,15 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void _undo() {
+    if (_history.isNotEmpty && _board != null) {
+      final lastMove = _history.removeLast();
+      setState(() {
+        _board!.initialBoard[lastMove['row']][lastMove['col']] = lastMove['oldValue'];
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +108,13 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('数独'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.undo),
+            onPressed: _history.isEmpty ? null : _undo,
+            tooltip: '撤销',
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
