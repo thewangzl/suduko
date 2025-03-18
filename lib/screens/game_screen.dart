@@ -23,10 +23,37 @@ class _GameScreenState extends State<GameScreen> {
     if (selectedCell != null && _board != null) {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
-      // 只允许修改初始值为0的格子
       if (_board!.initialBoard[row][col] == 0) {
         setState(() {
           _board!.initialBoard[row][col] = number;
+          
+          // 检查是否完成
+          if (_board!.isComplete()) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                title: const Text('恭喜！'),
+                content: const Text('你已经完成了这个数独题目！'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(); // 返回主菜单
+                    },
+                    child: const Text('返回主菜单'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _loadNewBoard(); // 开始新游戏
+                    },
+                    child: const Text('开始新游戏'),
+                  ),
+                ],
+              ),
+            );
+          }
         });
       }
     }

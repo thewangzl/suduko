@@ -3,17 +3,28 @@ class SudokuBoard {
   final List<List<int>> solution;
   final String difficulty;
 
-  SudokuBoard({
+  const SudokuBoard({
     required this.initialBoard,
     required this.solution,
     required this.difficulty,
   });
 
+  bool isComplete() {
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        if (initialBoard[i][j] != solution[i][j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   factory SudokuBoard.fromJson(Map<String, dynamic> json) {
     try {
       print('Received JSON: $json'); // Debug output
 
-      final newboard = json['newboard'];
+      final newboard = json['newboard'] ;
       if (newboard == null) {
         throw Exception('Missing newboard field in data');
       }
