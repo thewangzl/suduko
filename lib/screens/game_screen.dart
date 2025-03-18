@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../widgets/sudoku_grid.dart';
 import '../widgets/number_pad.dart';
-import '../widgets/control_panel.dart';  // 添加这行
+import '../widgets/control_panel.dart';
 import '../services/api_service.dart';
 import '../models/sudoku_board.dart';
+import 'dart:async';  // Add this import for Timer
 
 class GameScreen extends StatefulWidget {
   final String difficulty;
@@ -19,6 +20,59 @@ class _GameScreenState extends State<GameScreen> {
   bool _isLoading = true;
   int? selectedCell;
   List<Map<String, dynamic>> _history = [];  // 添加历史记录
+  Timer? _timer;
+  int _seconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNewBoard();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _seconds = 0;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _seconds++;
+      });
+    });
+  }
+
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _loadNewBoard() async {
+    try {
+      setState(() => _isLoading = true);
+      final board = await ApiService.getNewBoard(difficulty: widget.difficulty);
+      setState(() {
+        _board = board;
+        _isLoading = false;
+      });
+      _startTimer(); // 重置计时器
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _board = null;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('加载数独失败，请检查网络连接')),
+        );
+      }
+    }
+  }
 
   void handleNumberInput(int number) {
     if (selectedCell != null && _board != null) {
@@ -141,37 +195,16 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _loadNewBoard();
-  }
-
-  Future<void> _loadNewBoard() async {
-    try {
-      setState(() => _isLoading = true);
-      final board = await ApiService.getNewBoard(difficulty: widget.difficulty);
-      setState(() {
-        _board = board;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _board = null;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('加载数独失败，请检查网络连接')),
-        );
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('数独'),
+        title: Row(
+          children: [
+            const Text('数独'),
+            const Spacer(),
+            Text(_formatTime(_seconds)), // 显示计时器
+          ],
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
