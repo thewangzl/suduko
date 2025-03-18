@@ -239,15 +239,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('数独'),
-            const Spacer(),
-            Text('错误: $_errorCount/$maxErrors'),  // 显示错误次数
-            const SizedBox(width: 16),
-            Text(_formatTime(_seconds)),
-          ],
-        ),
+        title: const Text('数独'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -266,6 +258,9 @@ class _GameScreenState extends State<GameScreen> {
                             selectedCell = index;
                           });
                         },
+                        errorCount: _errorCount,
+                        maxErrors: maxErrors,
+                        formattedTime: _formatTime(_seconds),
                       ),
                     ),
                     ControlPanel(
