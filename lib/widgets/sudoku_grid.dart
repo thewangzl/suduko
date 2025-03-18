@@ -9,6 +9,7 @@ class SudokuGrid extends StatefulWidget {
   final int errorCount;
   final int maxErrors;
   final String formattedTime;
+  final List<int>? highlightedCells;  // 添加新属性
 
   const SudokuGrid({
     super.key,
@@ -18,6 +19,7 @@ class SudokuGrid extends StatefulWidget {
     required this.errorCount,
     required this.maxErrors,
     required this.formattedTime,
+    this.highlightedCells,  
   });
 
   @override
@@ -71,10 +73,9 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
     widget.onCellSelected(index);
   }
 
-  bool _shouldHighlight(int value) {
-    return highlightedNumber != null && 
-           value == highlightedNumber && 
-           value != 0;
+  bool _shouldHighlight(int index, int value) {
+    return (highlightedNumber != null && value == highlightedNumber && value != 0) ||
+           (widget.highlightedCells?.contains(index) ?? false);
   }
 
   // 添加缺失的边框获取方法
@@ -152,7 +153,7 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
                 final isSelected = widget.selectedCell == index;
                 final isInitial = widget.board.isInitialNumber[row][col];
                 final isWrong = _isWrongNumber(row, col, value);
-                final shouldHighlight = _shouldHighlight(value);
+                final shouldHighlight = _shouldHighlight(index, value);  // 修改这里，添加 index 参数
                 final notes = widget.board.notes[row][col];
 
                 return GestureDetector(
@@ -186,9 +187,12 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
                               )
                             : notes.isEmpty 
                                 ? const SizedBox() 
-                                : GridView.count(
+                                : // 在 GridView.count 部分修改样式
+                                  GridView.count(
                                     crossAxisCount: 3,
-                                    padding: const EdgeInsets.all(2),
+                                    padding: const EdgeInsets.all(1),
+                                    mainAxisSpacing: 1,
+                                    crossAxisSpacing: 1,
                                     physics: const NeverScrollableScrollPhysics(),
                                     children: List.generate(9, (i) {
                                       final number = i + 1;
@@ -197,8 +201,9 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
                                               child: Text(
                                                 number.toString(),
                                                 style: const TextStyle(
-                                                  fontSize: 10,
+                                                  fontSize: 11,
                                                   color: Colors.grey,
+                                                  height: 1,
                                                 ),
                                               ),
                                             )

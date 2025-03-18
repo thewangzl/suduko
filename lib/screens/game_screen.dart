@@ -26,6 +26,7 @@ class _GameScreenState extends State<GameScreen> {
   static const int maxErrors = 3;  // 最大错误次数
   int _errorCount = 0;  // 当前错误次数
   bool _isNoteMode = false;  // 添加笔记模式状态
+  List<int>? highlightedCells;  // 添加高亮格子列表
 
   @override
   void initState() {
@@ -58,7 +59,11 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _loadNewBoard() async {
     try {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _errorCount = 0;  // 重置错误次数
+        _history.clear(); // 清空历史记录
+      });
       final board = await ApiService.getNewBoard(difficulty: widget.difficulty);
       setState(() {
         _board = board;
@@ -130,9 +135,20 @@ class _GameScreenState extends State<GameScreen> {
       if (_board!.isInitialNumber[row][col]) return;
 
       if (_isNoteMode) {
-        // 笔记模式：切换笔记数字
+        // 检查数字是否已存在于相关区域
+        if (_board!.isNumberExistsInRegion(row, col, number)) {
+          // 获取需要高亮的位置
+          final positions = _board!.getSameNumberPositions(row, col, number);
+          // 通知 SudokuGrid 高亮这些位置
+          setState(() {
+            highlightedCells = positions;
+          });
+          return;
+        }
+        
         setState(() {
           _board!.toggleNote(row, col, number);
+          highlightedCells = null;  // 清除高亮
         });
       } else {
         // 普通模式：填写数字
@@ -158,14 +174,14 @@ class _GameScreenState extends State<GameScreen> {
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      Navigator.of(context).pop(); // 返回主菜单
+                      Navigator.of(context).pop();
                     },
                     child: const Text('返回主菜单'),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      _loadNewBoard(); // 开始新游戏
+                      _loadNewBoard();
                     },
                     child: const Text('重新开始'),
                   ),
@@ -180,13 +196,14 @@ class _GameScreenState extends State<GameScreen> {
           'row': row,
           'col': col,
           'oldValue': _board!.initialBoard[row][col],
-          'oldNotes': Set<int>.from(_board!.notes[row][col]),  // 保存笔记状态
+          'oldNotes': Set<int>.from(_board!.notes[row][col]),
           'newValue': number,
         });
 
         setState(() {
           _board!.initialBoard[row][col] = number;
-          _board!.clearNotes(row, col);  // 清除当前格子的笔记
+          _board!.clearNotes(row, col);
+          highlightedCells = null;  // 清除高亮
           
           if (_board!.isComplete()) {
             _showGameCompleteDialog();
@@ -232,15 +249,17 @@ class _GameScreenState extends State<GameScreen> {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
       // 检查是否为初始数字
-      if (!_board!.isInitialNumber[row][col] && _board!.initialBoard[row][col] != 0) {
+      if (!_board!.isInitialNumber[row][col]) {
         _history.add({
           'row': row,
           'col': col,
           'oldValue': _board!.initialBoard[row][col],
+          'oldNotes': Set<int>.from(_board!.notes[row][col]),  // 保存笔记状态
           'newValue': 0,
         });
         setState(() {
           _board!.initialBoard[row][col] = 0;
+          _board!.clearNotes(row, col);  // 清除笔记
         });
       }
     }
@@ -291,11 +310,13 @@ class _GameScreenState extends State<GameScreen> {
                         onCellSelected: (index) {
                           setState(() {
                             selectedCell = index;
+                            highlightedCells = null;  // 点击格子时清除高亮
                           });
                         },
                         errorCount: _errorCount,
                         maxErrors: maxErrors,
                         formattedTime: _formatTime(_seconds),
+                        highlightedCells: highlightedCells,  // 传递高亮格子列表
                       ),
                     ),
                     ControlPanel(

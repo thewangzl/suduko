@@ -101,4 +101,75 @@ class SudokuBoard {
   void clearNotes(int row, int col) {
     notes[row][col].clear();
   }
+
+  // 检查数字在行、列、宫中是否已存在
+  bool isNumberExistsInRegion(int row, int col, int number) {
+    // 检查行
+    for (int c = 0; c < 9; c++) {
+      if (c != col && 
+          initialBoard[row][c] == number && 
+          initialBoard[row][c] == solution[row][c]) {
+        return true;
+      }
+    }
+    
+    // 检查列
+    for (int r = 0; r < 9; r++) {
+      if (r != row && 
+          initialBoard[r][col] == number && 
+          initialBoard[r][col] == solution[r][col]) {
+        return true;
+      }
+    }
+    
+    // 检查3x3宫格
+    final boxRow = (row ~/ 3) * 3;
+    final boxCol = (col ~/ 3) * 3;
+    for (int r = boxRow; r < boxRow + 3; r++) {
+      for (int c = boxCol; c < boxCol + 3; c++) {
+        if ((r != row || c != col) && 
+            initialBoard[r][c] == number && 
+            initialBoard[r][c] == solution[r][c]) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  // 获取同区域中相同数字的位置
+  List<int> getSameNumberPositions(int row, int col, int number) {
+    List<int> positions = [];
+    
+    // 检查行
+    for (int c = 0; c < 9; c++) {
+      if (initialBoard[row][c] == number && 
+          initialBoard[row][c] == solution[row][c]) {
+        positions.add(row * 9 + c);
+      }
+    }
+    
+    // 检查列
+    for (int r = 0; r < 9; r++) {
+      if (initialBoard[r][col] == number && 
+          initialBoard[r][col] == solution[r][col]) {
+        positions.add(r * 9 + col);
+      }
+    }
+    
+    // 检查3x3宫格
+    final boxRow = (row ~/ 3) * 3;
+    final boxCol = (col ~/ 3) * 3;
+    for (int r = boxRow; r < boxRow + 3; r++) {
+      for (int c = boxCol; c < boxCol + 3; c++) {
+        if (initialBoard[r][c] == number && 
+            initialBoard[r][c] == solution[r][c]) {
+          positions.add(r * 9 + c);
+        }
+      }
+    }
+    
+    return positions.toSet().toList(); // 去重
+  }
 }
