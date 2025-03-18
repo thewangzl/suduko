@@ -61,4 +61,21 @@ class SudokuBoard {
       rethrow;
     }
   }
+
+  int getRemainingCount(int number) {
+    int count = 9;  // 每个数字最多出现9次
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        if (initialBoard[i][j] == number && !_isWrongNumber(i, j, number)) {
+          count--;
+        }
+      }
+    }
+    return count;
+  }
+
+  bool _isWrongNumber(int row, int col, int value) {
+    if (value == 0) return false;
+    return value != solution[row][col];
+  }
 }

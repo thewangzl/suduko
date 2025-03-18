@@ -274,6 +274,7 @@ class _GameScreenState extends State<GameScreen> {
                       flex: 2,
                       child: NumberPad(
                         onNumberSelected: handleNumberInput,
+                        board: _board!,
                       ),
                     ),
                   ],
