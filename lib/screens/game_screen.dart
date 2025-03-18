@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/sudoku_grid.dart';
 import '../widgets/number_pad.dart';
+import '../widgets/control_panel.dart';  // 添加这行
 import '../services/api_service.dart';
 import '../models/sudoku_board.dart';
 
@@ -76,6 +77,69 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  // 添加提示功能
+  void _hint() {
+    if (selectedCell != null && _board != null) {
+      final row = selectedCell! ~/ 9;
+      final col = selectedCell! % 9;
+      if (_board!.initialBoard[row][col] == 0) {
+        final correctValue = _board!.solution[row][col];
+        _history.add({
+          'row': row,
+          'col': col,
+          'oldValue': _board!.initialBoard[row][col],
+          'newValue': correctValue,
+        });
+        setState(() {
+          _board!.initialBoard[row][col] = correctValue;
+        });
+      }
+    }
+  }
+
+  // 添加清除功能
+  void _clear() {
+    if (selectedCell != null && _board != null) {
+      final row = selectedCell! ~/ 9;
+      final col = selectedCell! % 9;
+      if (_board!.initialBoard[row][col] != 0) {
+        _history.add({
+          'row': row,
+          'col': col,
+          'oldValue': _board!.initialBoard[row][col],
+          'newValue': 0,
+        });
+        setState(() {
+          _board!.initialBoard[row][col] = 0;
+        });
+      }
+    }
+  }
+
+  // 添加重置功能
+  void _reset() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('重置游戏'),
+        content: const Text('确定要重置游戏吗？这将清除所有已填写的数字。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _loadNewBoard();
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -108,13 +172,6 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('数独'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.undo),
-            onPressed: _history.isEmpty ? null : _undo,
-            tooltip: '撤销',
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -134,6 +191,13 @@ class _GameScreenState extends State<GameScreen> {
                           });
                         },
                       ),
+                    ),
+                    ControlPanel(
+                      onUndo: _undo,
+                      canUndo: _history.isNotEmpty,
+                      onHint: _hint,
+                      onClear: _clear,
+                      onReset: _reset,
                     ),
                     Expanded(
                       flex: 2,
