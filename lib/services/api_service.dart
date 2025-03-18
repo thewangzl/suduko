@@ -21,7 +21,7 @@ class ApiService {
         if (response.statusCode == 200) {
           final decodedResponse = json.decode(response.body);
           final board = SudokuBoard.fromJson(decodedResponse);
-          
+          print("难度要求：${board.difficulty}, 难度：${difficulty}, 难度匹配：${board.difficulty == difficulty}");
           if (board.difficulty == difficulty) {
             return board;
           }

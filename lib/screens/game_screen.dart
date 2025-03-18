@@ -5,6 +5,7 @@ import '../widgets/control_panel.dart';
 import '../services/api_service.dart';
 import '../models/sudoku_board.dart';
 import 'dart:async';  // Add this import for Timer
+import '../services/database_service.dart';
 
 class GameScreen extends StatefulWidget {
   final String difficulty;
@@ -76,6 +77,50 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void _showGameCompleteDialog() async {
+    _timer?.cancel();
+    final bestTime = await DatabaseService.getBestTime(widget.difficulty);
+    await DatabaseService.updateBestTime(widget.difficulty, _seconds);
+    
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('恭喜！'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('你已经完成了这个数独题目！'),
+              const SizedBox(height: 8),
+              Text('本次用时: ${_formatTime(_seconds)}'),
+              if (bestTime != null) Text('最佳记录: ${_formatTime(bestTime)}'),
+              if (bestTime == null || _seconds < bestTime)
+                const Text('新纪录！', style: TextStyle(color: Colors.red)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              child: const Text('返回主菜单'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _loadNewBoard();
+              },
+              child: const Text('开始新游戏'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   void handleNumberInput(int number) {
     if (selectedCell != null && _board != null) {
       final row = selectedCell! ~/ 9;
@@ -130,32 +175,9 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           _board!.initialBoard[row][col] = number;
           
-          // 检查是否完成
+          // 修改这里的完成检查
           if (_board!.isComplete()) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => AlertDialog(
-                title: const Text('恭喜！'),
-                content: const Text('你已经完成了这个数独题目！'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop(); // 返回主菜单
-                    },
-                    child: const Text('返回主菜单'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _loadNewBoard(); // 开始新游戏
-                    },
-                    child: const Text('开始新游戏'),
-                  ),
-                ],
-              ),
-            );
+            _showGameCompleteDialog();
           }
         });
       }
