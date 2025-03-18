@@ -50,7 +50,7 @@ class SudokuGrid extends StatelessWidget {
             final col = index % 9;
             final value = board.initialBoard[row][col];
             final isSelected = selectedCell == index;
-            final isInitialValue = board.initialBoard[row][col] != 0;
+            final isInitial = board.isInitialNumber[row][col];
             final isWrong = _isWrongNumber(row, col, value);
 
             return GestureDetector(
@@ -69,10 +69,10 @@ class SudokuGrid extends StatelessWidget {
                     value != 0 ? value.toString() : '',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: isInitialValue ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isInitial ? FontWeight.bold : FontWeight.normal,
                       color: isWrong 
                           ? Colors.red 
-                          : isInitialValue 
+                          : isInitial 
                               ? Colors.black 
                               : Colors.blue,
                     ),

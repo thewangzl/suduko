@@ -1,13 +1,20 @@
 class SudokuBoard {
-  final List<List<int>> initialBoard;
-  final List<List<int>> solution;
-  final String difficulty;
+  List<List<int>> initialBoard;
+  List<List<int>> solution;
+  List<List<bool>> isInitialNumber;  // 添加初始数字标记
+  String difficulty;
 
-  const SudokuBoard({
+  SudokuBoard({
     required this.initialBoard,
     required this.solution,
     required this.difficulty,
-  });
+  }) : isInitialNumber = List.generate(
+         9,
+         (i) => List.generate(
+           9,
+           (j) => initialBoard[i][j] != 0,  // 初始化时记录非0的位置
+         ),
+       );
 
   bool isComplete() {
     for (int i = 0; i < 9; i++) {

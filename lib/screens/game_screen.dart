@@ -80,7 +80,8 @@ class _GameScreenState extends State<GameScreen> {
     if (selectedCell != null && _board != null) {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
-      if (_board!.initialBoard[row][col] == 0) {
+      // 检查是否为初始数字
+      if (!_board!.isInitialNumber[row][col]) {
         // 检查输入是否正确
         final isCorrect = _board!.solution[row][col] == number;
         if (!isCorrect) {
@@ -195,7 +196,8 @@ class _GameScreenState extends State<GameScreen> {
     if (selectedCell != null && _board != null) {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
-      if (_board!.initialBoard[row][col] != 0) {
+      // 检查是否为初始数字
+      if (!_board!.isInitialNumber[row][col] && _board!.initialBoard[row][col] != 0) {
         _history.add({
           'row': row,
           'col': col,
