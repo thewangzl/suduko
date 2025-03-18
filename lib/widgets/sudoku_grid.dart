@@ -27,6 +27,11 @@ class SudokuGrid extends StatelessWidget {
     );
   }
 
+  bool _isWrongNumber(int row, int col, int value) {
+    if (value == 0) return false;
+    return value != board.solution[row][col];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -46,13 +51,18 @@ class SudokuGrid extends StatelessWidget {
             final value = board.initialBoard[row][col];
             final isSelected = selectedCell == index;
             final isInitialValue = board.initialBoard[row][col] != 0;
+            final isWrong = _isWrongNumber(row, col, value);
 
             return GestureDetector(
               onTap: () => onCellSelected(index),
               child: Container(
                 decoration: BoxDecoration(
                   border: _getBorder(index),
-                  color: isSelected ? Colors.blue.withOpacity(0.2) : null,
+                  color: isWrong 
+                      ? Colors.red.withOpacity(0.2)
+                      : isSelected 
+                          ? Colors.blue.withOpacity(0.2) 
+                          : null,
                 ),
                 child: Center(
                   child: Text(
@@ -60,7 +70,11 @@ class SudokuGrid extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: isInitialValue ? FontWeight.bold : FontWeight.normal,
-                      color: isInitialValue ? Colors.black : Colors.blue,
+                      color: isWrong 
+                          ? Colors.red 
+                          : isInitialValue 
+                              ? Colors.black 
+                              : Colors.blue,
                     ),
                   ),
                 ),
