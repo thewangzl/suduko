@@ -14,19 +14,33 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const GameScreen(difficulty: 'easy'),
-                  ),
-                );
-              },
-              child: const Text('开始游戏'),
-            ),
+            _buildDifficultyButton(context, '简单', 'Easy'),
+            const SizedBox(height: 16),
+            _buildDifficultyButton(context, '中等', 'Medium'),
+            const SizedBox(height: 16),
+            _buildDifficultyButton(context, '困难', 'Hard'),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultyButton(BuildContext context, String text, String difficulty) {
+    return SizedBox(
+      width: 200,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GameScreen(difficulty: difficulty),
+            ),
+          );
+        },
+        child: Text(text, style: const TextStyle(fontSize: 18)),
       ),
     );
   }

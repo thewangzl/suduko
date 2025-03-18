@@ -41,7 +41,7 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> _loadNewBoard() async {
     try {
       setState(() => _isLoading = true);
-      final board = await ApiService.getNewBoard();
+      final board = await ApiService.getNewBoard(difficulty: widget.difficulty);
       setState(() {
         _board = board;
         _isLoading = false;
