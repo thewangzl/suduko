@@ -16,6 +16,21 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   SudokuBoard? _board;
   bool _isLoading = true;
+  int? selectedCell; // 添加选中格子的索引
+
+  // 添加处理数字输入的方法
+  void handleNumberInput(int number) {
+    if (selectedCell != null && _board != null) {
+      final row = selectedCell! ~/ 9;
+      final col = selectedCell! % 9;
+      // 只允许修改初始值为0的格子
+      if (_board!.initialBoard[row][col] == 0) {
+        setState(() {
+          _board!.initialBoard[row][col] = number;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -59,11 +74,21 @@ class _GameScreenState extends State<GameScreen> {
                     const Spacer(),
                     Expanded(
                       flex: 6,
-                      child: SudokuGrid(board: _board!),
+                      child: SudokuGrid(
+                        board: _board!,
+                        selectedCell: selectedCell,
+                        onCellSelected: (index) {
+                          setState(() {
+                            selectedCell = index;
+                          });
+                        },
+                      ),
                     ),
                     Expanded(
                       flex: 2,
-                      child: const NumberPad(),
+                      child: NumberPad(
+                        onNumberSelected: handleNumberInput,
+                      ),
                     ),
                   ],
                 ),

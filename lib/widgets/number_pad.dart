@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class NumberPad extends StatelessWidget {
-  const NumberPad({super.key});
+  final Function(int) onNumberSelected;
+
+  const NumberPad({
+    super.key,
+    required this.onNumberSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,7 @@ class NumberPad extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: () {},
+              onPressed: () => onNumberSelected(index + 1),
               child: Text(
                 '${index + 1}',
                 style: const TextStyle(fontSize: 20),

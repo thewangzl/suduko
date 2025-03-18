@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/sudoku_board.dart';
 
-class SudokuGrid extends StatefulWidget {
+class SudokuGrid extends StatelessWidget {
   final SudokuBoard board;
+  final int? selectedCell;
+  final Function(int) onCellSelected;
 
   const SudokuGrid({
     super.key,
     required this.board,
+    required this.selectedCell,
+    required this.onCellSelected,
   });
-
-  @override
-  State<SudokuGrid> createState() => _SudokuGridState();
-}
-
-class _SudokuGridState extends State<SudokuGrid> {
-  int? selectedIndex;
 
   Border _getBorder(int index) {
     final row = index ~/ 9;
@@ -46,15 +43,12 @@ class _SudokuGridState extends State<SudokuGrid> {
           itemBuilder: (context, index) {
             final row = index ~/ 9;
             final col = index % 9;
-            final value = widget.board.initialBoard[row][col];
-            final isSelected = selectedIndex == index;
-            
+            final value = board.initialBoard[row][col];
+            final isSelected = selectedCell == index;
+            final isInitialValue = board.initialBoard[row][col] != 0;
+
             return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedIndex = index;
-                });
-              },
+              onTap: () => onCellSelected(index),
               child: Container(
                 decoration: BoxDecoration(
                   border: _getBorder(index),
@@ -65,8 +59,8 @@ class _SudokuGridState extends State<SudokuGrid> {
                     value != 0 ? value.toString() : '',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: value != 0 ? FontWeight.bold : FontWeight.normal,
-                      color: value != 0 ? Colors.black : Colors.blue,
+                      fontWeight: isInitialValue ? FontWeight.bold : FontWeight.normal,
+                      color: isInitialValue ? Colors.black : Colors.blue,
                     ),
                   ),
                 ),
