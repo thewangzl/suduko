@@ -109,7 +109,6 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
     return value != widget.board.solution[row][col];
   }
 
-  // 修复 build 方法中的错误引用
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -154,6 +153,7 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
                 final isInitial = widget.board.isInitialNumber[row][col];
                 final isWrong = _isWrongNumber(row, col, value);
                 final shouldHighlight = _shouldHighlight(value);
+                final notes = widget.board.notes[row][col];
 
                 return GestureDetector(
                   onTap: () => _handleCellTap(index),
@@ -165,29 +165,46 @@ class _SudokuGridState extends State<SudokuGrid> with TickerProviderStateMixin {
                           border: _getBorder(index),
                           color: isWrong 
                               ? Colors.red.withOpacity(0.2)
-                              : (isSelected || shouldHighlight)  // 修改这里，使相同数字的背景色与选中单元格一致
+                              : (isSelected || shouldHighlight)
                                   ? Colors.blue.withOpacity(0.2) 
                                   : null,
                         ),
-                        child: Transform.scale(
-                          scale: shouldHighlight 
-                              ? 1.0 + _animationController.value * 0.1  // 减小缩放幅度
-                              : 1.0,
-                          child: Center(
-                            child: Text(
-                              value != 0 ? value.toString() : '',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: isInitial ? FontWeight.bold : FontWeight.normal,
-                                color: isWrong 
-                                    ? Colors.red 
-                                    : isInitial 
-                                        ? Colors.black 
-                                        : Colors.blue,
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: value != 0 
+                            ? Center(
+                                child: Text(
+                                  value.toString(),
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: isInitial ? FontWeight.bold : FontWeight.normal,
+                                    color: isWrong 
+                                        ? Colors.red 
+                                        : isInitial 
+                                            ? Colors.black 
+                                            : Colors.blue,
+                                  ),
+                                ),
+                              )
+                            : notes.isEmpty 
+                                ? const SizedBox() 
+                                : GridView.count(
+                                    crossAxisCount: 3,
+                                    padding: const EdgeInsets.all(2),
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    children: List.generate(9, (i) {
+                                      final number = i + 1;
+                                      return notes.contains(number)
+                                          ? Center(
+                                              child: Text(
+                                                number.toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            )
+                                          : const SizedBox();
+                                    }),
+                                  ),
                       );
                     },
                   ),

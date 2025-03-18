@@ -25,6 +25,7 @@ class _GameScreenState extends State<GameScreen> {
   int _seconds = 0;
   static const int maxErrors = 3;  // 最大错误次数
   int _errorCount = 0;  // 当前错误次数
+  bool _isNoteMode = false;  // 添加笔记模式状态
 
   @override
   void initState() {
@@ -125,16 +126,26 @@ class _GameScreenState extends State<GameScreen> {
     if (selectedCell != null && _board != null) {
       final row = selectedCell! ~/ 9;
       final col = selectedCell! % 9;
-      // 检查是否为初始数字
-      if (!_board!.isInitialNumber[row][col]) {
-        // 检查输入是否正确
+      
+      if (_board!.isInitialNumber[row][col]) return;
+
+      if (_isNoteMode) {
+        // 笔记模式：切换笔记数字
+        setState(() {
+          _board!.toggleNote(row, col, number);
+        });
+      } else {
+        // 普通模式：填写数字
+        if (_board!.initialBoard[row][col] != 0) {
+          _board!.clearNotes(row, col);  // 清除笔记
+        }
+        
         final isCorrect = _board!.solution[row][col] == number;
         if (!isCorrect) {
           setState(() {
             _errorCount++;
           });
           
-          // 检查是否达到最大错误次数
           if (_errorCount >= maxErrors) {
             _timer?.cancel();
             showDialog(
@@ -164,18 +175,19 @@ class _GameScreenState extends State<GameScreen> {
             return;
           }
         }
-        // 记录当前状态
+
         _history.add({
           'row': row,
           'col': col,
           'oldValue': _board!.initialBoard[row][col],
+          'oldNotes': Set<int>.from(_board!.notes[row][col]),  // 保存笔记状态
           'newValue': number,
         });
 
         setState(() {
           _board!.initialBoard[row][col] = number;
+          _board!.clearNotes(row, col);  // 清除当前格子的笔记
           
-          // 修改这里的完成检查
           if (_board!.isComplete()) {
             _showGameCompleteDialog();
           }
@@ -189,6 +201,7 @@ class _GameScreenState extends State<GameScreen> {
       final lastMove = _history.removeLast();
       setState(() {
         _board!.initialBoard[lastMove['row']][lastMove['col']] = lastMove['oldValue'];
+        _board!.notes[lastMove['row']][lastMove['col']] = lastMove['oldNotes'] ?? <int>{};  // 恢复笔记状态
       });
     }
   }
@@ -291,6 +304,12 @@ class _GameScreenState extends State<GameScreen> {
                       onHint: _hint,
                       onClear: _clear,
                       onReset: _reset,
+                      isNoteMode: _isNoteMode,  // 新增
+                      onToggleNoteMode: () {
+                        setState(() {
+                          _isNoteMode = !_isNoteMode;
+                        });
+                      },
                     ),
                     Expanded(
                       flex: 2,

@@ -1,7 +1,8 @@
 class SudokuBoard {
   List<List<int>> initialBoard;
   List<List<int>> solution;
-  List<List<bool>> isInitialNumber;  // 添加初始数字标记
+  List<List<bool>> isInitialNumber;
+  List<List<Set<int>>> notes;  // 添加笔记数据
   String difficulty;
 
   SudokuBoard({
@@ -12,7 +13,14 @@ class SudokuBoard {
          9,
          (i) => List.generate(
            9,
-           (j) => initialBoard[i][j] != 0,  // 初始化时记录非0的位置
+           (j) => initialBoard[i][j] != 0,
+         ),
+       ),
+       notes = List.generate(  // 初始化笔记数据
+         9,
+         (i) => List.generate(
+           9,
+           (j) => <int>{},
          ),
        );
 
@@ -77,5 +85,20 @@ class SudokuBoard {
   bool _isWrongNumber(int row, int col, int value) {
     if (value == 0) return false;
     return value != solution[row][col];
+  }
+
+  // 添加笔记相关方法
+  void toggleNote(int row, int col, int number) {
+    if (isInitialNumber[row][col] || initialBoard[row][col] != 0) return;
+    
+    if (notes[row][col].contains(number)) {
+      notes[row][col].remove(number);
+    } else {
+      notes[row][col].add(number);
+    }
+  }
+
+  void clearNotes(int row, int col) {
+    notes[row][col].clear();
   }
 }
